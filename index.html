@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>羽毛ふとんリフォーム 管理システム</title>
+
+  <!-- Bootstrap 5 -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Bootstrap Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+  <!-- Custom Style -->
+  <link href="css/style.css" rel="stylesheet">
+</head>
+<body>
+
+<div id="wrapper">
+
+  <!-- ===== サイドバー ===== -->
+  <nav id="sidebar">
+    <div class="sidebar-brand">
+      <h1>🪶 羽毛ふとん<br>リフォーム管理</h1>
+      <div class="brand-sub">2025年度版</div>
+    </div>
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a class="nav-link" href="#" data-nav="dashboard">
+          <span class="nav-icon"><i class="bi bi-house-fill"></i></span>ダッシュボード
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" data-nav="estimate">
+          <span class="nav-icon"><i class="bi bi-calculator-fill"></i></span>見積もり作成
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" data-nav="orders">
+          <span class="nav-icon"><i class="bi bi-list-check"></i></span>受注管理
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" data-nav="customers">
+          <span class="nav-icon"><i class="bi bi-people-fill"></i></span>顧客管理
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="#" data-nav="settings">
+          <span class="nav-icon"><i class="bi bi-gear-fill"></i></span>設定
+        </a>
+      </li>
+    </ul>
+    <div class="sidebar-footer">東陽産業 価格表 2025年度</div>
+  </nav>
+
+  <!-- ===== メインコンテンツ ===== -->
+  <div id="main-content">
+    <!-- トップバー -->
+    <div id="topbar">
+      <h2 class="page-title" id="page-title">ダッシュボード</h2>
+      <div class="d-flex gap-2">
+        <button class="btn btn-sm btn-primary" onclick="navigateTo('estimate'); renderEstimateForm();">
+          <i class="bi bi-plus-lg me-1"></i>新規見積もり
+        </button>
+      </div>
+    </div>
+
+    <div class="content-area">
+
+      <!-- ============================================================
+           ダッシュボード
+      ============================================================ -->
+      <div id="view-dashboard" class="view-section">
+        <!-- サマリーカード -->
+        <div class="row g-3 mb-4">
+          <div class="col-6 col-md-3">
+            <div class="stat-card">
+              <div class="stat-icon">📋</div>
+              <div class="stat-value" id="dash-total-orders">0</div>
+              <div class="stat-label">総受注件数</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="stat-card">
+              <div class="stat-icon">👥</div>
+              <div class="stat-value" id="dash-customers">0</div>
+              <div class="stat-label">顧客数</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="stat-card">
+              <div class="stat-icon">💰</div>
+              <div class="stat-value" id="dash-month-revenue" style="font-size:18px">¥0</div>
+              <div class="stat-label">今月の売上</div>
+            </div>
+          </div>
+          <div class="col-6 col-md-3">
+            <div class="stat-card">
+              <div class="stat-icon">📈</div>
+              <div class="stat-value" id="dash-total-revenue" style="font-size:18px">¥0</div>
+              <div class="stat-label">累計売上</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="row g-3">
+          <!-- 最近の受注 -->
+          <div class="col-md-8">
+            <div class="card">
+              <div class="card-header primary d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-clock-history me-2"></i>最近の受注</span>
+                <a href="#" class="text-white text-decoration-none small" data-nav="orders" onclick="navigateTo('orders')">一覧を見る →</a>
+              </div>
+              <div class="card-body p-0">
+                <table class="table table-hover mb-0">
+                  <thead>
+                    <tr>
+                      <th>受注番号</th><th>顧客名</th><th>ステータス</th><th class="text-end">金額</th><th>日付</th>
+                    </tr>
+                  </thead>
+                  <tbody id="dash-recent-orders">
+                    <tr><td colspan="5" class="text-center text-muted py-4">データがありません</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- ステータス別件数 -->
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-header primary"><i class="bi bi-bar-chart-fill me-2"></i>ステータス別件数</div>
+              <div class="card-body" id="dash-status-breakdown"></div>
+            </div>
+            <div class="card mt-3">
+              <div class="card-header bg-light"><i class="bi bi-lightning-fill me-2"></i>クイックアクション</div>
+              <div class="card-body d-grid gap-2">
+                <button class="btn btn-primary btn-sm" onclick="navigateTo('estimate'); renderEstimateForm();">
+                  <i class="bi bi-plus-circle me-1"></i>新規見積もりを作成
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="doExportOrderList()">
+                  <i class="bi bi-file-earmark-excel me-1"></i>受注一覧をExcel出力
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="doExportExcel()">
+                  <i class="bi bi-cloud-download me-1"></i>データをExcelバックアップ
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /dashboard -->
+
+      <!-- ============================================================
+           見積もり作成
+      ============================================================ -->
+      <div id="view-estimate" class="view-section" style="display:none">
+        <div class="row g-3">
+
+          <!-- 左カラム: 入力フォーム -->
+          <div class="col-lg-7">
+
+            <!-- 種別・サイズ -->
+            <div class="card mb-3">
+              <div class="card-header primary"><i class="bi bi-tag-fill me-2"></i>種別・サイズ</div>
+              <div class="card-body">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">種別</label>
+                    <div class="btn-group type-btn-group w-100" role="group">
+                      <input type="radio" class="btn-check" name="est-type" id="type-reform" value="reform" onchange="toggleEstimateType()">
+                      <label class="btn btn-outline-primary" for="type-reform">🔧 リフォーム</label>
+                      <input type="radio" class="btn-check" name="est-type" id="type-order" value="order" onchange="toggleEstimateType()">
+                      <label class="btn btn-outline-primary" for="type-order">✨ オーダーふとん</label>
+                    </div>
+                    <input type="hidden" id="est-type" value="reform">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label" for="est-size">サイズ</label>
+                    <select class="form-select" id="est-size" onchange="updateEstimateTotal()">
+                      <option value="SL">シングル（SL）150×210</option>
+                      <option value="SDL">セミダブル（SDL）175×210</option>
+                      <option value="DL">ダブル（DL）190×210</option>
+                      <option value="QL">クイーン（QL）210×210</option>
+                      <option value="KL">キング（KL）230×210</option>
+                      <option value="SS" class="order-size-opt" style="display:none">ジュニア（SS）140×190</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 顧客情報 -->
+            <div class="card mb-3">
+              <div class="card-header primary"><i class="bi bi-person-fill me-2"></i>顧客情報</div>
+              <div class="card-body">
+                <div class="row g-2">
+                  <div class="col-12">
+                    <label class="form-label">顧客を選択</label>
+                    <select class="form-select" id="est-customer-select" onchange="onCustomerSelect()">
+                      <option value="">-- 既存顧客を選択 --</option>
+                    </select>
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">顧客名 <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="est-customer-name" placeholder="例: 山田 太郎">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">見積番号</label>
+                    <input type="text" class="form-control" id="est-estimate-no" placeholder="自動生成">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">見積日</label>
+                    <input type="date" class="form-control" id="est-order-date">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">希望納期</label>
+                    <input type="date" class="form-control" id="est-delivery-date">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- リフォーム専用フィールド -->
+            <div id="reform-fields">
+              <div class="card mb-3">
+                <div class="card-header primary"><i class="bi bi-arrow-repeat me-2"></i>羽毛加工</div>
+                <div class="card-body">
+                  <div class="row g-3">
+                    <div class="col-md-6">
+                      <label class="form-label">加工方法</label>
+                      <select class="form-select" id="est-wash-method" onchange="updateEstimateTotal()">
+                        <option value="premium">プレミアムダウンウォッシュ</option>
+                        <option value="steam">スチーム＆除塵</option>
+                      </select>
+                    </div>
+                    <div class="col-md-6">
+                      <label class="form-label">羽毛重量 (kg)</label>
+                      <input type="number" class="form-control" id="est-wash-kg" step="0.1" min="0" max="10" placeholder="例: 1.3" oninput="updateEstimateTotal()">
+                    </div>
+                  </div>
+                  <div class="mt-2">
+                    <small class="text-muted">プレミアムウォッシュ: ～1.6kg ¥13,200 / ～2.1kg ¥16,500 / ～2.5kg ¥19,140 / ～3.0kg ¥22,220 / 超過 ¥7,260/kg</small>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card mb-3">
+                <div class="card-header bg-light"><i class="bi bi-layers me-2"></i>新調側生地（オプション）</div>
+                <div class="card-body">
+                  <label class="form-label">側生地</label>
+                  <select class="form-select" id="est-fabric-select" onchange="updateEstimateTotal()">
+                    <option value="">-- 新調しない --</option>
+                  </select>
+                  <div class="mt-2">
+                    <label class="form-label">キルト</label>
+                    <select class="form-select" id="est-quilt-select" onchange="updateEstimateTotal()">
+                      <option value="">-- キルトなし --</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card mb-3">
+                <div class="card-header bg-light"><i class="bi bi-plus-circle me-2"></i>足し羽毛（オプション）</div>
+                <div class="card-body">
+                  <div class="row g-2">
+                    <div class="col-md-8">
+                      <label class="form-label">羽毛種類</label>
+                      <select class="form-select" id="est-adddown-select" onchange="updateEstimateTotal()">
+                        <option value="">-- 足し羽毛なし --</option>
+                      </select>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">追加量 (kg)</label>
+                      <input type="number" class="form-control" id="est-adddown-kg" step="0.1" min="0" placeholder="kg" oninput="updateEstimateTotal()">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card mb-3">
+                <div class="card-header bg-light"><i class="bi bi-bag me-2"></i>バッグ（オプション）</div>
+                <div class="card-body">
+                  <select class="form-select" id="est-bag-select" onchange="updateEstimateTotal()">
+                    <option value="">-- バッグなし --</option>
+                  </select>
+                </div>
+              </div>
+            </div><!-- /reform-fields -->
+
+            <!-- オーダーふとん専用フィールド -->
+            <div id="order-fields" style="display:none">
+              <div class="card mb-3">
+                <div class="card-header primary"><i class="bi bi-feather me-2"></i>羽毛アイテム</div>
+                <div class="card-body">
+                  <div class="row g-2">
+                    <div class="col-md-8">
+                      <label class="form-label">羽毛アイテム</label>
+                      <select class="form-select" id="est-hane-select" onchange="updateEstimateTotal()">
+                        <option value="">-- 選択してください --</option>
+                      </select>
+                    </div>
+                    <div class="col-md-4">
+                      <label class="form-label">充填量 (kg)</label>
+                      <input type="number" class="form-control" id="est-hane-kg" step="0.1" min="0" placeholder="kg" oninput="updateEstimateTotal()">
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card mb-3">
+                <div class="card-header bg-light"><i class="bi bi-layers me-2"></i>側生地・キルト</div>
+                <div class="card-body">
+                  <label class="form-label">側生地</label>
+                  <select class="form-select mb-2" id="est-order-fabric" onchange="updateEstimateTotal()">
+                    <option value="">-- 選択してください --</option>
+                  </select>
+                  <label class="form-label">キルト（仕上げ込み）</label>
+                  <select class="form-select" id="est-order-quilt" onchange="updateEstimateTotal()">
+                    <option value="">-- 選択してください --</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="card mb-3">
+                <div class="card-header bg-light"><i class="bi bi-bag me-2"></i>バッグ</div>
+                <div class="card-body">
+                  <select class="form-select" id="est-order-bag" onchange="updateEstimateTotal()">
+                    <option value="">-- 選択してください --</option>
+                  </select>
+                </div>
+              </div>
+            </div><!-- /order-fields -->
+
+            <!-- カスタム追加項目 -->
+            <div class="card mb-3">
+              <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-pencil-square me-2"></i>追加項目（自由記入）</span>
+                <button class="btn btn-sm btn-outline-secondary" onclick="addCustomItem()">+ 追加</button>
+              </div>
+              <div class="card-body" id="custom-items-container">
+                <small class="text-muted">「追加」ボタンで自由に項目を加えられます</small>
+              </div>
+            </div>
+
+            <!-- 備考 -->
+            <div class="card mb-3">
+              <div class="card-header bg-light"><i class="bi bi-chat-text me-2"></i>備考</div>
+              <div class="card-body">
+                <textarea class="form-control" id="est-notes" rows="3" placeholder="お客様への特記事項、配送方法など"></textarea>
+              </div>
+            </div>
+
+          </div><!-- /左カラム -->
+
+          <!-- 右カラム: 内訳・合計・出力 -->
+          <div class="col-lg-5">
+            <div style="position:sticky; top: 70px;">
+
+              <!-- 合計 -->
+              <div id="est-total-box" class="mb-3">
+                <div class="total-label">お見積り合計金額（税込）</div>
+                <div class="total-amount" id="est-total-display">¥0</div>
+              </div>
+
+              <!-- 内訳 -->
+              <div class="card mb-3">
+                <div class="card-header primary"><i class="bi bi-receipt me-2"></i>金額内訳</div>
+                <div class="card-body p-0">
+                  <table class="table table-sm breakdown-table mb-0">
+                    <tbody id="est-breakdown">
+                      <tr><td colspan="2" class="text-center text-muted py-3">項目を選択してください</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- 保存・出力ボタン -->
+              <div class="card">
+                <div class="card-header primary"><i class="bi bi-file-earmark-text me-2"></i>保存・出力</div>
+                <div class="card-body d-grid gap-2">
+                  <button class="btn btn-secondary" onclick="saveEstimate()">
+                    <i class="bi bi-save me-1"></i>下書き保存
+                  </button>
+                  <div class="section-divider mt-0 pt-1">見積書</div>
+                  <div class="row g-2">
+                    <div class="col-6">
+                      <button class="btn btn-primary w-100" onclick="saveAndShowPDF()">
+                        <i class="bi bi-file-pdf me-1"></i>PDF出力
+                      </button>
+                    </div>
+                    <div class="col-6">
+                      <button class="btn btn-success w-100" onclick="saveAndShowExcel()">
+                        <i class="bi bi-file-excel me-1"></i>Excel出力
+                      </button>
+                    </div>
+                  </div>
+                  <div class="section-divider pt-1">発注書</div>
+                  <div class="row g-2">
+                    <div class="col-6">
+                      <button class="btn btn-accent w-100" onclick="saveOrderSheet()">
+                        <i class="bi bi-file-pdf me-1"></i>PDF発注書
+                      </button>
+                    </div>
+                    <div class="col-6">
+                      <button class="btn btn-outline-success w-100" onclick="saveOrderSheetExcel()">
+                        <i class="bi bi-file-excel me-1"></i>Excel発注書
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div><!-- /右カラム -->
+        </div>
+      </div><!-- /estimate -->
+
+      <!-- ============================================================
+           受注管理
+      ============================================================ -->
+      <div id="view-orders" class="view-section" style="display:none">
+        <!-- フィルター -->
+        <div class="card mb-3">
+          <div class="card-body">
+            <div class="row g-2 align-items-end">
+              <div class="col-md-3">
+                <label class="form-label">ステータス絞り込み</label>
+                <select class="form-select form-select-sm" id="filter-status" onchange="renderOrderList()">
+                  <option value="">すべて</option>
+                  <option value="estimate">見積中</option>
+                  <option value="confirmed">受注確定</option>
+                  <option value="ordered">工場発注済</option>
+                  <option value="making">製作中</option>
+                  <option value="done">完成</option>
+                  <option value="delivered">納品済</option>
+                </select>
+              </div>
+              <div class="col-md-3">
+                <label class="form-label">種別絞り込み</label>
+                <select class="form-select form-select-sm" id="filter-type" onchange="renderOrderList()">
+                  <option value="">すべて</option>
+                  <option value="reform">リフォーム</option>
+                  <option value="order">オーダー</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label class="form-label">検索（顧客名・番号）</label>
+                <input type="text" class="form-control form-control-sm" id="order-search" placeholder="顧客名または番号..." oninput="renderOrderList()">
+              </div>
+              <div class="col-md-2">
+                <button class="btn btn-outline-success btn-sm w-100" onclick="doExportOrderList()">
+                  <i class="bi bi-file-excel me-1"></i>Excel出力
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>受注番号</th>
+                  <th>顧客名</th>
+                  <th>種別/サイズ</th>
+                  <th>ステータス</th>
+                  <th class="text-end">金額</th>
+                  <th>日付</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="order-list-body">
+                <tr><td colspan="7" class="text-center text-muted py-4">データがありません</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /orders -->
+
+      <!-- ============================================================
+           顧客管理
+      ============================================================ -->
+      <div id="view-customers" class="view-section" style="display:none">
+        <div class="d-flex gap-2 mb-3">
+          <input type="text" class="form-control" id="customer-search" placeholder="顧客名・電話番号で検索..." oninput="renderCustomerList()" style="max-width:300px">
+          <button class="btn btn-primary" onclick="openCustomerModal()">
+            <i class="bi bi-person-plus me-1"></i>新規顧客登録
+          </button>
+        </div>
+        <div class="card">
+          <div class="card-body p-0">
+            <table class="table table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>氏名</th>
+                  <th>電話番号</th>
+                  <th>住所</th>
+                  <th class="text-center">受注件数</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="customer-list-body">
+                <tr><td colspan="5" class="text-center text-muted py-4">顧客データがありません</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /customers -->
+
+      <!-- ============================================================
+           設定
+      ============================================================ -->
+      <div id="view-settings" class="view-section" style="display:none">
+        <div class="row g-3">
+          <div class="col-md-8">
+            <div class="card mb-3">
+              <div class="card-header primary"><i class="bi bi-building me-2"></i>会社情報</div>
+              <div class="card-body">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">会社名</label>
+                    <input type="text" class="form-control" id="set-company-name">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">郵便番号</label>
+                    <input type="text" class="form-control" id="set-postal-code" placeholder="000-0000">
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">住所</label>
+                    <input type="text" class="form-control" id="set-company-address">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">TEL</label>
+                    <input type="text" class="form-control" id="set-company-tel">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">FAX</label>
+                    <input type="text" class="form-control" id="set-company-fax">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">メールアドレス</label>
+                    <input type="text" class="form-control" id="set-company-email">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="card mb-3">
+              <div class="card-header primary"><i class="bi bi-sliders me-2"></i>見積もり設定</div>
+              <div class="card-body">
+                <div class="row g-3">
+                  <div class="col-md-6">
+                    <label class="form-label">見積有効期限（日）</label>
+                    <input type="number" class="form-control" id="set-estimate-valid" value="30">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label">標準納期（日）</label>
+                    <input type="number" class="form-control" id="set-delivery-days" value="14">
+                  </div>
+                  <div class="col-12">
+                    <label class="form-label">デフォルト備考文</label>
+                    <textarea class="form-control" id="set-note" rows="2"></textarea>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <button class="btn btn-primary px-5" onclick="saveSettings_()">
+              <i class="bi bi-check-lg me-1"></i>設定を保存
+            </button>
+          </div>
+
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-header primary"><i class="bi bi-database me-2"></i>データ管理</div>
+              <div class="card-body d-grid gap-2">
+                <button class="btn btn-success btn-sm" onclick="doExportExcel()">
+                  <i class="bi bi-file-earmark-excel me-1"></i>Excelバックアップ
+                </button>
+                <button class="btn btn-outline-primary btn-sm" onclick="doExportJson()">
+                  <i class="bi bi-download me-1"></i>JSONバックアップ
+                </button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="doImportData()">
+                  <i class="bi bi-upload me-1"></i>JSONインポート
+                </button>
+                <hr>
+                <small class="text-muted">データはブラウザ（LocalStorage）に保存されます。定期的にバックアップを推奨します。</small>
+              </div>
+            </div>
+
+            <div class="card mt-3">
+              <div class="card-header bg-light"><i class="bi bi-info-circle me-2"></i>価格マスター情報</div>
+              <div class="card-body">
+                <small>
+                  <strong>ベース価格表:</strong> 2025年度 東陽産業<br>
+                  <strong>側生地:</strong> <span id="fabric-count"></span> 種類<br>
+                  <strong>キルト:</strong> <span id="quilt-count"></span> パターン<br>
+                  <strong>羽毛アイテム:</strong> <span id="hane-count"></span> 種類<br>
+                  <br>
+                  <span class="text-muted">※全価格は税込です</span>
+                </small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div><!-- /settings -->
+
+    </div><!-- /content-area -->
+  </div><!-- /main-content -->
+</div><!-- /wrapper -->
+
+<!-- ===== モーダル: 受注詳細 ===== -->
+<div class="modal fade" id="orderDetailModal" tabindex="-1">
+  <div class="modal-dialog modal-xl">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--primary);color:#fff">
+        <h5 class="modal-title"><i class="bi bi-file-earmark-text me-2"></i>受注詳細</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="order-detail-body"></div>
+      <div class="modal-footer flex-wrap gap-2">
+        <button class="btn btn-primary" id="detail-edit-btn"><i class="bi bi-pencil me-1"></i>編集</button>
+        <button class="btn btn-outline-primary" id="detail-est-pdf-btn"><i class="bi bi-file-pdf me-1"></i>見積書PDF</button>
+        <button class="btn btn-outline-success" id="detail-est-xls-btn"><i class="bi bi-file-excel me-1"></i>見積書Excel</button>
+        <button class="btn btn-accent" id="detail-ord-pdf-btn"><i class="bi bi-file-pdf me-1"></i>発注書PDF</button>
+        <button class="btn btn-outline-success" id="detail-ord-xls-btn"><i class="bi bi-file-excel me-1"></i>発注書Excel</button>
+        <button class="btn btn-warning" id="detail-status-save-btn"><i class="bi bi-arrow-repeat me-1"></i>ステータス更新</button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== モーダル: 顧客 ===== -->
+<div class="modal fade" id="customerModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" style="background:var(--primary);color:#fff">
+        <h5 class="modal-title" id="cust-modal-title">顧客登録</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="row g-3">
+          <div class="col-12">
+            <label class="form-label">氏名 <span class="text-danger">*</span></label>
+            <input type="text" class="form-control" id="cust-name" placeholder="例: 山田 太郎">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">電話番号</label>
+            <input type="text" class="form-control" id="cust-tel" placeholder="000-0000-0000">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label">メールアドレス</label>
+            <input type="email" class="form-control" id="cust-email">
+          </div>
+          <div class="col-md-4">
+            <label class="form-label">郵便番号</label>
+            <input type="text" class="form-control" id="cust-postal" placeholder="000-0000">
+          </div>
+          <div class="col-md-8">
+            <label class="form-label">住所</label>
+            <input type="text" class="form-control" id="cust-address">
+          </div>
+          <div class="col-12">
+            <label class="form-label">備考</label>
+            <textarea class="form-control" id="cust-notes" rows="2"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary px-4" onclick="saveCustomer()"><i class="bi bi-check me-1"></i>保存</button>
+        <button class="btn btn-secondary" data-bs-dismiss="modal">キャンセル</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- トースト通知 -->
+<div id="toast-container" class="position-fixed bottom-0 end-0 p-3" style="z-index:9999"></div>
+
+<!-- ===== ライブラリ (CDN) ===== -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.1/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<!-- ===== アプリ JS ===== -->
+<script src="js/master.js"></script>
+<script src="js/calc.js"></script>
+<script src="js/store.js"></script>
+<script src="js/pdf.js"></script>
+<script src="js/excel.js"></script>
+<script src="js/app.js"></script>
+
+<!-- ===== ドロップダウン初期化・ページタイトル更新 ===== -->
+<script>
+// ナビゲーション時にページタイトルを更新
+const PAGE_TITLES = {
+  dashboard: 'ダッシュボード',
+  estimate:  '見積もり作成',
+  orders:    '受注管理',
+  customers: '顧客管理',
+  settings:  '設定',
+};
+const _origNavigateTo = navigateTo;
+navigateTo = function(view) {
+  _origNavigateTo(view);
+  const titleEl = document.getElementById('page-title');
+  if (titleEl) titleEl.textContent = PAGE_TITLES[view] || view;
+};
+
+// radio ボタンの同期
+document.querySelectorAll('input[name="est-type"]').forEach(radio => {
+  radio.addEventListener('change', () => {
+    document.getElementById('est-type').value = radio.value;
+    // SSサイズオプションの表示切替
+    const ssOpts = document.querySelectorAll('.order-size-opt');
+    ssOpts.forEach(o => o.style.display = radio.value === 'order' ? '' : 'none');
+  });
+});
+
+// ドロップダウンを動的構築
+function buildDropdowns() {
+  // 側生地 (reform)
+  const fabricSelR = document.getElementById('est-fabric-select');
+  const fabricSelO = document.getElementById('est-order-fabric');
+  FABRIC_PRICES.forEach((f, i) => {
+    const opt = `<option value="${i}">${f.name}　${f.spec}</option>`;
+    fabricSelR.insertAdjacentHTML('beforeend', opt);
+    fabricSelO.insertAdjacentHTML('beforeend', opt);
+  });
+
+  // キルト (grouped by category)
+  const quiltSelR = document.getElementById('est-quilt-select');
+  const quiltSelO = document.getElementById('est-order-quilt');
+  const categories = [...new Set(QUILT_PRICES.map(q => q.cat))];
+  categories.forEach(cat => {
+    const items = QUILT_PRICES.filter(q => q.cat === cat);
+    const groupR = document.createElement('optgroup');
+    const groupO = document.createElement('optgroup');
+    groupR.label = groupO.label = cat;
+    items.forEach(q => {
+      const label = `${q.no} ${q.masu} ${q.pat}（${q.machi}）`;
+      const optR = new Option(label, q.id);
+      const optO = new Option(label, q.id);
+      groupR.appendChild(optR);
+      groupO.appendChild(optO);
+    });
+    quiltSelR.appendChild(groupR);
+    quiltSelO.appendChild(groupO);
+  });
+
+  // 足し羽毛 (reform)
+  const addDownSel = document.getElementById('est-adddown-select');
+  TASHI_HANE.forEach(h => {
+    addDownSel.insertAdjacentHTML('beforeend',
+      `<option value="${h.id}">${h.name}　¥${h.pricePerKg.toLocaleString('ja-JP')}/kg</option>`);
+  });
+
+  // バッグ (reform)
+  const bagSelR = document.getElementById('est-bag-select');
+  const bagSelO = document.getElementById('est-order-bag');
+  BAG_PRICES.forEach((b, i) => {
+    const opt = `<option value="${i}">${b.type}</option>`;
+    bagSelR.insertAdjacentHTML('beforeend', opt);
+    bagSelO.insertAdjacentHTML('beforeend', opt);
+  });
+
+  // 羽毛アイテム (order)
+  const haneSel = document.getElementById('est-hane-select');
+  HANE_ITEMS.filter(h => h.order).forEach(h => {
+    const priceStr = h.pricePerKg ? `¥${h.pricePerKg.toLocaleString('ja-JP')}/kg` : h.note || '';
+    haneSel.insertAdjacentHTML('beforeend',
+      `<option value="${h.no}">${h.no} ${h.name}　${priceStr}</option>`);
+  });
+
+  // 設定ページのカウント表示
+  const fc = document.getElementById('fabric-count');
+  const qc = document.getElementById('quilt-count');
+  const hc = document.getElementById('hane-count');
+  if (fc) fc.textContent = FABRIC_PRICES.length;
+  if (qc) qc.textContent = QUILT_PRICES.length;
+  if (hc) hc.textContent = HANE_ITEMS.length;
+}
+
+// DOMContentLoaded 後に実行
+document.addEventListener('DOMContentLoaded', buildDropdowns);
+</script>
+</body>
+</html>
